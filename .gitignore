@@ -16,5 +16,7 @@ yarn-error.*
 .env
 .env.local
 .env.production
+google-services-key.json
+asc-api-key.p8
 ios/
 android/

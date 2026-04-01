@@ -68,12 +68,14 @@ Edit `eas.json` and fill in your Apple and Google credentials:
 
 ```json
 "submit": {
-  "production": {
+  "production-ios": {
     "ios": {
       "appleId": "your-apple-id@icloud.com",
       "ascAppId": "YOUR_APP_STORE_CONNECT_APP_ID",
       "appleTeamId": "YOUR_APPLE_TEAM_ID"
-    },
+    }
+  },
+  "production-android": {
     "android": {
       "serviceAccountKeyPath": "./google-services-key.json",
       "track": "production"
@@ -104,7 +106,7 @@ npm run build:android
 3. Run the EAS submit command:
 
 ```bash
-npm run submit:ios
+eas submit --platform ios --profile production-ios
 ```
 
 EAS will prompt for credentials and upload the `.ipa` automatically.
@@ -117,7 +119,7 @@ EAS will prompt for credentials and upload the `.ipa` automatically.
 4. Run the EAS submit command:
 
 ```bash
-npm run submit:android
+eas submit --platform android --profile production-android
 ```
 
 ---
@@ -167,4 +169,6 @@ Replace the placeholder images in `assets/images/` with your branded artwork:
 - `favicon.png` — 32 × 32 px for the web build
 
 After replacing assets, rebuild the app with `npm run build:all`.
+
+For a full production checklist, see `RELEASE.md`.
 
