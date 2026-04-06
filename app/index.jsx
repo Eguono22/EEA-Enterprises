@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   BackHandler,
   Platform,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -43,11 +44,14 @@ export default function HomeScreen() {
     webViewRef.current?.reload();
   };
 
+  const screenOptions = { headerShown: false };
+
   if (hasError) {
     return (
       <>
-        <Stack.Screen options={{ title: 'EEA Enterprises' }} />
-        <View style={styles.errorContainer}>
+        <Stack.Screen options={screenOptions} />
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <View style={[styles.errorContainer, { paddingTop: insets.top }]}>
           <Text style={styles.errorTitle}>Unable to Connect</Text>
           <Text style={styles.errorMessage}>
             Please check your internet connection and try again.
@@ -62,8 +66,17 @@ export default function HomeScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: 'EEA Enterprises' }} />
-      <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+      <Stack.Screen options={screenOptions} />
+      <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+      <View
+        style={[
+          styles.container,
+          {
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+          },
+        ]}
+      >
         <WebView
           ref={webViewRef}
           source={{ uri: EEA_URL }}
