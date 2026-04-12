@@ -172,3 +172,37 @@ After replacing assets, rebuild the app with `npm run build:all`.
 
 For a full production checklist, see `RELEASE.md`.
 
+---
+
+## Monitoring Setup
+
+This app includes Sentry-based crash reporting and basic event tracking for the native shell.
+
+1. Copy `.env.example` to `.env`
+2. Set `EXPO_PUBLIC_SENTRY_DSN` to your Sentry project DSN
+3. Optionally adjust:
+
+```bash
+EXPO_PUBLIC_APP_ENV=production
+EXPO_PUBLIC_SENTRY_TRACES_SAMPLE_RATE=0.1
+```
+
+If you want source maps uploaded during EAS builds, also set these environment variables in your shell or as EAS secrets:
+
+```bash
+SENTRY_ORG=your-sentry-org
+SENTRY_PROJECT=your-sentry-project
+SENTRY_AUTH_TOKEN=your-sentry-auth-token
+```
+
+Tracked events currently include:
+
+- app session start
+- home screen view
+- WebView navigation changes
+- WebView load start / finish
+- retry taps
+- WebView load and HTTP failures
+
+To verify locally, start the app with `npm start` after setting the DSN and confirm events appear in Sentry.
+

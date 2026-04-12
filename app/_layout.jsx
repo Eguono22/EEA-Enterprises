@@ -1,7 +1,11 @@
+import * as Sentry from '@sentry/react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { initMonitoring } from '../lib/monitoring';
 
-export default function RootLayout() {
+initMonitoring();
+
+function RootLayout() {
   return (
     <>
       <StatusBar style="light" />
@@ -20,3 +24,5 @@ export default function RootLayout() {
     </>
   );
 }
+
+export default Sentry.wrap(RootLayout);

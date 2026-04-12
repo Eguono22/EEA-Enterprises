@@ -12,11 +12,13 @@ import {
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
+import { captureMessage, trackEvent, sanitizeUrl } from '../lib/monitoring';
 
 const EEA_URL = 'https://eea-enterprises.com/';
 
 export default function HomeScreen() {
   const webViewRef = useRef(null);
+  const lastTrackedUrlRef = useRef(null);
   const insets = useSafeAreaInsets();
   const [canGoBack, setCanGoBack] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +40,17 @@ export default function HomeScreen() {
     return () => subscription.remove();
   }, [handleBackPress]);
 
+  useEffect(() => {
+    trackEvent('home_screen_viewed', {
+      initialUrl: EEA_URL,
+      platform: Platform.OS,
+    });
+  }, []);
+
   const handleReload = () => {
+    trackEvent('webview_retry_tapped', {
+      lastUrl: lastTrackedUrlRef.current ?? EEA_URL,
+    });
     setHasError(false);
     setIsLoading(true);
     webViewRef.current?.reload();
@@ -81,20 +93,49 @@ export default function HomeScreen() {
           ref={webViewRef}
           source={{ uri: EEA_URL }}
           style={styles.webview}
-          onLoadStart={() => setIsLoading(true)}
-          onLoadEnd={() => setIsLoading(false)}
-          onError={() => {
+          onLoadStart={(event) => {
+            setIsLoading(true);
+            trackEvent('webview_load_started', {
+              url: event.nativeEvent.url ?? lastTrackedUrlRef.current ?? EEA_URL,
+            });
+          }}
+          onLoadEnd={(event) => {
+            setIsLoading(false);
+            trackEvent('webview_load_finished', {
+              url: event.nativeEvent.url ?? lastTrackedUrlRef.current ?? EEA_URL,
+            });
+          }}
+          onError={(event) => {
+            const { nativeEvent } = event;
             setIsLoading(false);
             setHasError(true);
+            captureMessage('WebView failed to load', {
+              url: nativeEvent.url ?? lastTrackedUrlRef.current ?? EEA_URL,
+              code: nativeEvent.code,
+              description: nativeEvent.description,
+            });
           }}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             if (nativeEvent.statusCode >= 500) {
               setHasError(true);
             }
+            captureMessage('WebView HTTP error', {
+              url: nativeEvent.url ?? lastTrackedUrlRef.current ?? EEA_URL,
+              statusCode: nativeEvent.statusCode,
+            });
           }}
           onNavigationStateChange={(navState) => {
             setCanGoBack(navState.canGoBack);
+            const sanitizedUrl = sanitizeUrl(navState.url);
+            if (lastTrackedUrlRef.current !== sanitizedUrl) {
+              lastTrackedUrlRef.current = sanitizedUrl;
+              trackEvent('webview_navigation_changed', {
+                url: sanitizedUrl,
+                canGoBack: navState.canGoBack,
+                loading: navState.loading,
+              });
+            }
           }}
           allowsBackForwardNavigationGestures
           javaScriptEnabled
