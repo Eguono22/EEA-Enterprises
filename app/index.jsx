@@ -12,7 +12,7 @@ import {
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { captureMessage, trackEvent, sanitizeUrl } from '../lib/monitoring';
+import { captureMessage, trackEvent, sanitizeUrl } from '../utils/monitoring';
 
 const EEA_URL = 'https://eea-enterprises.com/';
 

@@ -135,4 +135,3 @@ export function captureException(error, data = {}) {
     Sentry.captureException(error);
   });
 }
-

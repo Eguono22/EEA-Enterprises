@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { initMonitoring } from '../lib/monitoring';
+import { initMonitoring } from '../utils/monitoring';
 
 initMonitoring();
 
