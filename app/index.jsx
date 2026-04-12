@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,9 +13,56 @@ import {
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import { captureMessage, trackEvent, sanitizeUrl } from '../utils/monitoring';
 
 const EEA_URL = 'https://eea-enterprises.com/';
+
+function sanitizeUrl(url) {
+  if (!url) return 'unknown';
+
+  try {
+    const parsedUrl = new URL(url);
+    return `${parsedUrl.origin}${parsedUrl.pathname}`;
+  } catch {
+    return String(url).split(/[?#]/, 1)[0];
+  }
+}
+
+function trackEvent(name, data = {}) {
+  const sanitizedData = Object.entries(data).reduce((result, [key, value]) => {
+    result[key] = key.toLowerCase().includes('url') ? sanitizeUrl(value) : value;
+    return result;
+  }, {});
+
+  Sentry.addBreadcrumb({
+    category: 'analytics',
+    type: 'info',
+    level: 'info',
+    message: name,
+    data: sanitizedData,
+  });
+
+  if (__DEV__) {
+    console.log(`[monitoring] ${name}`, sanitizedData);
+  }
+}
+
+function captureMessage(message, data = {}, level = 'warning') {
+  const sanitizedData = Object.entries(data).reduce((result, [key, value]) => {
+    result[key] = key.toLowerCase().includes('url') ? sanitizeUrl(value) : value;
+    return result;
+  }, {});
+
+  Sentry.withScope((scope) => {
+    Object.entries(sanitizedData).forEach(([key, value]) => {
+      scope.setExtra(key, value);
+    });
+    Sentry.captureMessage(message, level);
+  });
+
+  if (__DEV__) {
+    console.log(`[monitoring:${level}] ${message}`, sanitizedData);
+  }
+}
 
 export default function HomeScreen() {
   const webViewRef = useRef(null);
