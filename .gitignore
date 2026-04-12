@@ -1,5 +1,7 @@
 node_modules/
 .expo/
+.expo-dev.out.log
+.expo-dev.err.log
 dist/
 build/
 *.jks
