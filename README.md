@@ -135,8 +135,7 @@ eea-enterprises/
 │   └── images/
 │       ├── icon.png         # App icon (1024×1024)
 │       ├── adaptive-icon.png # Android adaptive icon (1024×1024)
-│       ├── splash-icon.png  # Splash screen image (512×512)
-│       └── favicon.png      # Web favicon (32×32)
+│       └── splash-icon.png  # Splash screen image (512×512)
 ├── app.json                 # Expo app configuration
 ├── eas.json                 # EAS Build / Submit configuration
 ├── babel.config.js          # Babel configuration
@@ -166,7 +165,6 @@ Replace the placeholder images in `assets/images/` with your branded artwork:
 - `icon.png` — 1024 × 1024 px, no transparency, no rounded corners (Apple adds them automatically)
 - `adaptive-icon.png` — 1024 × 1024 px foreground layer for Android adaptive icons
 - `splash-icon.png` — centred logo displayed on the splash screen
-- `favicon.png` — 32 × 32 px for the web build
 
 After replacing assets, rebuild the app with `npm run build:all`.
 

@@ -2,7 +2,9 @@
   "expo": {
     "name": "EEA Enterprises",
     "slug": "eea-enterprises",
+    "description": "Official EEA Enterprises mobile app for browsing eea-enterprises.com in a native shell.",
     "version": "1.0.0",
+    "platforms": ["ios", "android"],
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "eea-enterprises",
@@ -18,8 +20,6 @@
       "bundleIdentifier": "com.eeaenterprises.app",
       "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "This app does not use the camera.",
-        "NSLocationWhenInUseUsageDescription": "This app does not use your location.",
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -30,11 +30,6 @@
       },
       "package": "com.eeaenterprises.app",
       "versionCode": 6
-    },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
       "expo-router",
