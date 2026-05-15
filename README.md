@@ -204,3 +204,21 @@ Tracked events currently include:
 
 To verify locally, start the app with `npm start` after setting the DSN and confirm events appear in Sentry.
 
+## Native Contact Shortcut
+
+The app includes a floating native `Contact Us` button above the WebView. It always opens a contact page inside the app, and it can also expose quote, phone, and WhatsApp shortcuts when these environment variables are set:
+
+```bash
+EXPO_PUBLIC_CONTACT_URL=https://eea-enterprises.com/contact
+EXPO_PUBLIC_CONTACT_EMAIL=hello@example.com
+EXPO_PUBLIC_CONTACT_PHONE=+31123456789
+EXPO_PUBLIC_CONTACT_WHATSAPP=31123456789
+```
+
+Optional quote email copy can also be customized:
+
+```bash
+EXPO_PUBLIC_QUOTE_EMAIL_SUBJECT=Quote Request from the EEA Enterprises App
+EXPO_PUBLIC_QUOTE_EMAIL_BODY=Hello EEA Enterprises,%0D%0A%0D%0AI would like to request a quote.%0D%0A
+```
+
