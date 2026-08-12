@@ -28,6 +28,7 @@ const QUOTE_EMAIL_SUBJECT =
 const QUOTE_EMAIL_BODY =
   process.env.EXPO_PUBLIC_QUOTE_EMAIL_BODY?.trim() ??
   'Hello EEA Enterprises,%0D%0A%0D%0AI would like to request a quote.%0D%0A%0D%0AName:%0D%0ACompany:%0D%0APhone:%0D%0AProject details:%0D%0A';
+const EEA_HOSTNAME = new URL(EEA_URL).hostname.replace(/^www\./, '');
 
 function sanitizeUrl(url) {
   if (!url) return 'unknown';
@@ -83,6 +84,26 @@ function normalizePhoneNumber(value) {
 
 function normalizeWhatsAppNumber(value) {
   return value.replace(/\D/g, '');
+}
+
+function encodeMailBody(value) {
+  try {
+    return encodeURIComponent(decodeURIComponent(value));
+  } catch {
+    return encodeURIComponent(value);
+  }
+}
+
+function shouldOpenInApp(url) {
+  if (!url) return true;
+
+  try {
+    const parsedUrl = new URL(url, EEA_URL);
+    const hostname = parsedUrl.hostname.replace(/^www\./, '');
+    return ['http:', 'https:'].includes(parsedUrl.protocol) && hostname === EEA_HOSTNAME;
+  } catch {
+    return false;
+  }
 }
 
 export default function HomeScreen() {
@@ -159,6 +180,22 @@ export default function HomeScreen() {
     });
   }, []);
 
+  const handleShouldStartLoad = useCallback(
+    (request) => {
+      const nextUrl = request?.url;
+
+      if (shouldOpenInApp(nextUrl)) {
+        return true;
+      }
+
+      openExternalLink(nextUrl, 'external_link_opened', {
+        source: 'webview',
+      });
+      return false;
+    },
+    [openExternalLink]
+  );
+
   const contactActions = [
     {
       key: 'contact-page',
@@ -174,7 +211,9 @@ export default function HomeScreen() {
             description: 'Open your email app with a prefilled quote request.',
             onPress: () =>
               openExternalLink(
-                `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(QUOTE_EMAIL_SUBJECT)}&body=${QUOTE_EMAIL_BODY}`,
+                `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
+                  QUOTE_EMAIL_SUBJECT
+                )}&body=${encodeMailBody(QUOTE_EMAIL_BODY)}`,
                 'quote_request_started',
                 { channel: 'email' }
               ),
@@ -301,6 +340,7 @@ export default function HomeScreen() {
               });
             }
           }}
+          onShouldStartLoadWithRequest={handleShouldStartLoad}
           allowsBackForwardNavigationGestures
           javaScriptEnabled
           domStorageEnabled
