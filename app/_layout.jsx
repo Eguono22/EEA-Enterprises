@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Platform } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
 const APP_ENV = process.env.EXPO_PUBLIC_APP_ENV ?? (__DEV__ ? 'development' : 'production');
@@ -72,7 +73,7 @@ if (SENTRY_DSN) {
 
 function RootLayout() {
   return (
-    <>
+    <SafeAreaProvider>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -86,7 +87,7 @@ function RootLayout() {
           headerTitleAlign: 'center',
         }}
       />
-    </>
+    </SafeAreaProvider>
   );
 }
 
