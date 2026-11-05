@@ -79,3 +79,12 @@ eas submit --platform android --profile production-android
 - iOS build number auto-increments via EAS production profile.
 - Android version code auto-increments via EAS production profile.
 - Update user-visible version in `app.json` (`expo.version`) when shipping a public release.
+
+## Connection Recovery Checks
+
+Before releasing, verify on iOS and Android:
+
+- Open the app without a connection and confirm the error screen appears.
+- Restore connectivity and tap Retry; the website should load again.
+- Confirm Contact Us remains available on the error screen, including configured phone and email shortcuts.
+- Navigate to another page, interrupt connectivity, and retry; the app should reload that page.

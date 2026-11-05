@@ -261,24 +261,6 @@ export default function HomeScreen() {
 
   const screenOptions = { headerShown: false };
 
-  if (hasError) {
-    return (
-      <>
-        <Stack.Screen options={screenOptions} />
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-        <View style={[styles.errorContainer, { paddingTop: insets.top }]}>
-          <Text style={styles.errorTitle}>Unable to Connect</Text>
-          <Text style={styles.errorMessage}>
-            Please check your internet connection and try again.
-          </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={handleReload}>
-            <Text style={styles.retryText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      </>
-    );
-  }
-
   return (
     <>
       <Stack.Screen options={screenOptions} />
@@ -320,7 +302,8 @@ export default function HomeScreen() {
           }}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            if (nativeEvent.statusCode >= 500) {
+            if (nativeEvent.statusCode >= 500 && nativeEvent.isTopFrame !== false) {
+              setIsLoading(false);
               setHasError(true);
             }
             captureMessage('WebView HTTP error', {
@@ -352,6 +335,22 @@ export default function HomeScreen() {
             </View>
           )}
         />
+        {hasError && (
+          <View style={styles.errorContainer} accessibilityLiveRegion="polite">
+            <Text style={styles.errorTitle}>Unable to Connect</Text>
+            <Text style={styles.errorMessage}>
+              Please check your internet connection and try again.
+            </Text>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Retry loading the website"
+              style={styles.retryButton}
+              onPress={handleReload}
+            >
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Contact EEA Enterprises"
@@ -365,7 +364,7 @@ export default function HomeScreen() {
         >
           <Text style={styles.contactButtonLabel}>Contact Us</Text>
         </Pressable>
-        {isLoading && (
+        {isLoading && !hasError && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#1a3c5e" />
           </View>
@@ -512,7 +511,7 @@ const styles = StyleSheet.create({
     color: '#5b6670',
   },
   errorContainer: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 24,
