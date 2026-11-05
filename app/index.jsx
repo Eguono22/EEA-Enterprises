@@ -5,7 +5,6 @@ import {
   Alert,
   BackHandler,
   Linking,
-  Modal,
   Platform,
   Pressable,
   StatusBar,
@@ -19,15 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
 
 const EEA_URL = 'https://eea-enterprises.com/';
-const CONTACT_PAGE_URL = process.env.EXPO_PUBLIC_CONTACT_URL ?? `${EEA_URL}contact`;
-const CONTACT_EMAIL = process.env.EXPO_PUBLIC_CONTACT_EMAIL?.trim() ?? '';
-const CONTACT_PHONE = process.env.EXPO_PUBLIC_CONTACT_PHONE?.trim() ?? '';
-const CONTACT_WHATSAPP = process.env.EXPO_PUBLIC_CONTACT_WHATSAPP?.trim() ?? '';
-const QUOTE_EMAIL_SUBJECT =
-  process.env.EXPO_PUBLIC_QUOTE_EMAIL_SUBJECT?.trim() ?? 'Quote Request from the EEA Enterprises App';
-const QUOTE_EMAIL_BODY =
-  process.env.EXPO_PUBLIC_QUOTE_EMAIL_BODY?.trim() ??
-  'Hello EEA Enterprises,%0D%0A%0D%0AI would like to request a quote.%0D%0A%0D%0AName:%0D%0ACompany:%0D%0APhone:%0D%0AProject details:%0D%0A';
+const CONTACT_PAGE_URL = `${EEA_URL}contact-us/`;
 const EEA_HOSTNAME = new URL(EEA_URL).hostname.replace(/^www\./, '');
 
 function sanitizeUrl(url) {
@@ -78,22 +69,6 @@ function captureMessage(message, data = {}, level = 'warning') {
   }
 }
 
-function normalizePhoneNumber(value) {
-  return value.replace(/[^\d+]/g, '');
-}
-
-function normalizeWhatsAppNumber(value) {
-  return value.replace(/\D/g, '');
-}
-
-function encodeMailBody(value) {
-  try {
-    return encodeURIComponent(decodeURIComponent(value));
-  } catch {
-    return encodeURIComponent(value);
-  }
-}
-
 function shouldOpenInApp(url) {
   if (!url) return true;
 
@@ -113,7 +88,6 @@ export default function HomeScreen() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [isContactSheetVisible, setIsContactSheetVisible] = useState(false);
   const [webViewUrl, setWebViewUrl] = useState(EEA_URL);
 
   // Handle Android hardware back button
@@ -140,8 +114,6 @@ export default function HomeScreen() {
   }, []);
 
   const openExternalLink = useCallback(async (url, eventName, metadata = {}) => {
-    setIsContactSheetVisible(false);
-
     try {
       const supported = await Linking.canOpenURL(url);
 
@@ -170,7 +142,6 @@ export default function HomeScreen() {
   }, []);
 
   const navigateToContactPage = useCallback(() => {
-    setIsContactSheetVisible(false);
     setHasError(false);
     setIsLoading(true);
     setWebViewUrl(CONTACT_PAGE_URL);
@@ -195,60 +166,6 @@ export default function HomeScreen() {
     },
     [openExternalLink]
   );
-
-  const contactActions = [
-    {
-      key: 'contact-page',
-      label: 'Open Contact Page',
-      description: 'Jump straight to the website contact page in the app.',
-      onPress: navigateToContactPage,
-    },
-    ...(CONTACT_EMAIL
-      ? [
-          {
-            key: 'quote-email',
-            label: 'Request a Quote',
-            description: 'Open your email app with a prefilled quote request.',
-            onPress: () =>
-              openExternalLink(
-                `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(
-                  QUOTE_EMAIL_SUBJECT
-                )}&body=${encodeMailBody(QUOTE_EMAIL_BODY)}`,
-                'quote_request_started',
-                { channel: 'email' }
-              ),
-          },
-        ]
-      : []),
-    ...(CONTACT_PHONE
-      ? [
-          {
-            key: 'phone',
-            label: 'Call Us',
-            description: CONTACT_PHONE,
-            onPress: () =>
-              openExternalLink(`tel:${normalizePhoneNumber(CONTACT_PHONE)}`, 'contact_call_started', {
-                channel: 'phone',
-              }),
-          },
-        ]
-      : []),
-    ...(CONTACT_WHATSAPP
-      ? [
-          {
-            key: 'whatsapp',
-            label: 'WhatsApp',
-            description: 'Start a WhatsApp chat with the team.',
-            onPress: () =>
-              openExternalLink(
-                `https://wa.me/${normalizeWhatsAppNumber(CONTACT_WHATSAPP)}`,
-                'contact_whatsapp_started',
-                { channel: 'whatsapp' }
-              ),
-          },
-        ]
-      : []),
-  ];
 
   const handleReload = () => {
     trackEvent('webview_retry_tapped', {
@@ -359,7 +276,7 @@ export default function HomeScreen() {
             trackEvent('contact_cta_opened', {
               currentUrl: lastTrackedUrlRef.current ?? EEA_URL,
             });
-            setIsContactSheetVisible(true);
+            navigateToContactPage();
           }}
         >
           <Text style={styles.contactButtonLabel}>Contact Us</Text>
@@ -370,40 +287,6 @@ export default function HomeScreen() {
           </View>
         )}
       </View>
-      <Modal
-        animationType="slide"
-        visible={isContactSheetVisible}
-        transparent
-        onRequestClose={() => setIsContactSheetVisible(false)}
-      >
-        <Pressable style={styles.sheetBackdrop} onPress={() => setIsContactSheetVisible(false)}>
-          <Pressable
-            style={[styles.sheetContainer, { paddingBottom: Math.max(insets.bottom + 16, 24) }]}
-            onPress={() => {}}
-          >
-            <Text style={styles.sheetTitle}>Get in Touch</Text>
-            <Text style={styles.sheetSubtitle}>
-              Choose the fastest way to reach EEA Enterprises.
-            </Text>
-            {contactActions.map((action) => (
-              <TouchableOpacity
-                key={action.key}
-                style={styles.sheetAction}
-                onPress={action.onPress}
-              >
-                <Text style={styles.sheetActionLabel}>{action.label}</Text>
-                <Text style={styles.sheetActionDescription}>{action.description}</Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity
-              style={styles.sheetCloseButton}
-              onPress={() => setIsContactSheetVisible(false)}
-            >
-              <Text style={styles.sheetCloseLabel}>Close</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </Modal>
     </>
   );
 }
@@ -456,59 +339,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 15,
     fontWeight: '700',
-  },
-  sheetBackdrop: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.35)',
-  },
-  sheetContainer: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 24,
-  },
-  sheetTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1a3c5e',
-    marginBottom: 8,
-  },
-  sheetSubtitle: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: '#555555',
-    marginBottom: 20,
-  },
-  sheetAction: {
-    borderWidth: 1,
-    borderColor: '#d8e1ea',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 12,
-  },
-  sheetActionLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1a3c5e',
-    marginBottom: 4,
-  },
-  sheetActionDescription: {
-    fontSize: 14,
-    lineHeight: 20,
-    color: '#5b6670',
-  },
-  sheetCloseButton: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    marginTop: 4,
-  },
-  sheetCloseLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#5b6670',
   },
   errorContainer: {
     ...StyleSheet.absoluteFillObject,
