@@ -92,3 +92,5 @@ Before releasing, verify on iOS and Android:
 - Navigate to another page, interrupt connectivity, and retry; the app should reload that page.
 - Confirm loading shows a small indicator without fading the page or blocking scrolling and Contact Us.
 - On a slow connection, confirm the indicator clears within 15 seconds while the page continues loading; genuine load failures should still show the retry screen.
+- Open Contact Us on iPhone and Android; embedded widgets should load without opening another app or showing an Unavailable alert.
+- Tap email, phone, and WhatsApp links; confirm they open the corresponding app or display a useful message with another way to make contact if no app is installed.

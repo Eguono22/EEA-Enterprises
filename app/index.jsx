@@ -16,10 +16,14 @@ import {
 import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
+import {
+  CONTACT_LINK_ORIGINS,
+  getLinkFailureMessage,
+  getNavigationAction,
+} from '../utils/webview-navigation';
 
 const EEA_URL = 'https://eea-enterprises.com/';
 const CONTACT_PAGE_URL = `${EEA_URL}contact-us/`;
-const EEA_HOSTNAME = new URL(EEA_URL).hostname.replace(/^www\./, '');
 const LOADING_INDICATOR_TIMEOUT_MS = 15000;
 
 function sanitizeUrl(url) {
@@ -70,18 +74,6 @@ function captureMessage(message, data = {}, level = 'warning') {
   }
 }
 
-function shouldOpenInApp(url) {
-  if (!url) return true;
-
-  try {
-    const parsedUrl = new URL(url, EEA_URL);
-    const hostname = parsedUrl.hostname.replace(/^www\./, '');
-    return ['http:', 'https:'].includes(parsedUrl.protocol) && hostname === EEA_HOSTNAME;
-  } catch {
-    return false;
-  }
-}
-
 export default function HomeScreen() {
   const webViewRef = useRef(null);
   const lastTrackedUrlRef = useRef(null);
@@ -125,29 +117,19 @@ export default function HomeScreen() {
 
   const openExternalLink = useCallback(async (url, eventName, metadata = {}) => {
     try {
-      const supported = await Linking.canOpenURL(url);
-
-      if (!supported) {
-        captureMessage('Contact shortcut unavailable', {
-          url,
-          ...metadata,
-        });
-        Alert.alert('Unavailable', 'This option is not available on this device.');
-        return;
-      }
-
+      // iOS can reject availability queries even when opening the URL works.
+      await Linking.openURL(url);
       trackEvent(eventName, {
         url,
         ...metadata,
       });
-      await Linking.openURL(url);
     } catch (error) {
       captureMessage('Failed to open contact shortcut', {
         url,
         ...metadata,
         error: error instanceof Error ? error.message : String(error),
       });
-      Alert.alert('Unable to Open', 'Please try again in a moment.');
+      Alert.alert('Unable to Open Link', getLinkFailureMessage(url));
     }
   }, []);
 
@@ -168,10 +150,10 @@ export default function HomeScreen() {
   const handleShouldStartLoad = useCallback(
     (request) => {
       const nextUrl = request?.url;
+      const action = getNavigationAction(request, EEA_URL);
 
-      if (shouldOpenInApp(nextUrl)) {
-        return true;
-      }
+      if (action === 'allow') return true;
+      if (action === 'ignore') return false;
 
       openExternalLink(nextUrl, 'external_link_opened', {
         source: 'webview',
@@ -263,6 +245,7 @@ export default function HomeScreen() {
             }
           }}
           onShouldStartLoadWithRequest={handleShouldStartLoad}
+          originWhitelist={CONTACT_LINK_ORIGINS}
           allowsBackForwardNavigationGestures
           javaScriptEnabled
           domStorageEnabled
