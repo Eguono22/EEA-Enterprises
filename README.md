@@ -9,7 +9,7 @@ A cross-platform mobile application for [EEA Enterprises](https://eea-enterprise
 - 📱 Native iOS & Android app powered by Expo / React Native
 - 🌐 Full website experience via embedded WebView
 - ⬅️ Android hardware back-button navigation support
-- ⏳ Loading indicator while pages load
+- ⏳ Nonblocking loading indicator that clears on completion or after 15 seconds
 - ⚠️ Offline / error screen with retry button
 - 🎨 Branded splash screen and app icon (EEA navy blue)
 
@@ -25,9 +25,9 @@ without prior written permission. See [LICENSE](./LICENSE) for details.
 
 | Tool | Version |
 |------|---------|
-| Node.js | 18 or later |
+| Node.js | 22.13 or later (22.x), 24.3 or later (24.x), or 26 or later |
 | npm | 9 or later |
-| Expo CLI | `npm install -g expo-cli` |
+| Expo CLI | Included with the project's `expo` package |
 | EAS CLI | `npm install -g eas-cli` |
 | Expo account | [expo.dev](https://expo.dev/signup) (free) |
 
@@ -51,6 +51,10 @@ npm start
 npm run ios      # Requires macOS + Xcode
 npm run android  # Requires Android Studio
 ```
+
+The project uses Expo SDK 58. Install a version of Expo Go that supports SDK 58;
+availability in app stores depends on Expo's rollout. After upgrading dependencies,
+restart the development server with `npx expo start --clear`.
 
 ---
 

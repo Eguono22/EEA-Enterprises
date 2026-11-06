@@ -3,18 +3,12 @@
     "name": "EEA Enterprises",
     "slug": "eea-enterprises",
     "description": "Official EEA Enterprises mobile app for browsing eea-enterprises.com in a native shell.",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "platforms": ["ios", "android"],
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "eea-enterprises",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#1a3c5e"
-    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.eeaenterprises.app",
@@ -34,6 +28,15 @@
     "plugins": [
       "expo-router",
       "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#1a3c5e"
+        }
+      ],
       "@sentry/react-native"
     ],
     "experiments": {

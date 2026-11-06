@@ -20,6 +20,7 @@ import { Stack } from 'expo-router';
 const EEA_URL = 'https://eea-enterprises.com/';
 const CONTACT_PAGE_URL = `${EEA_URL}contact-us/`;
 const EEA_HOSTNAME = new URL(EEA_URL).hostname.replace(/^www\./, '');
+const LOADING_INDICATOR_TIMEOUT_MS = 15000;
 
 function sanitizeUrl(url) {
   if (!url) return 'unknown';
@@ -113,6 +114,15 @@ export default function HomeScreen() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!isLoading) return;
+
+    // Some pages keep third-party resources open after their content is usable.
+    // Bound the indicator without stopping the page or hiding connection errors.
+    const timeout = setTimeout(() => setIsLoading(false), LOADING_INDICATOR_TIMEOUT_MS);
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
+
   const openExternalLink = useCallback(async (url, eventName, metadata = {}) => {
     try {
       const supported = await Linking.canOpenURL(url);
@@ -144,12 +154,16 @@ export default function HomeScreen() {
   const navigateToContactPage = useCallback(() => {
     setHasError(false);
     setIsLoading(true);
-    setWebViewUrl(CONTACT_PAGE_URL);
+    if (webViewUrl === CONTACT_PAGE_URL) {
+      webViewRef.current?.reload();
+    } else {
+      setWebViewUrl(CONTACT_PAGE_URL);
+    }
     trackEvent('contact_page_opened', {
       url: CONTACT_PAGE_URL,
       source: 'native_cta',
     });
-  }, []);
+  }, [webViewUrl]);
 
   const handleShouldStartLoad = useCallback(
     (request) => {
@@ -207,6 +221,11 @@ export default function HomeScreen() {
               url: event.nativeEvent.url ?? lastTrackedUrlRef.current ?? EEA_URL,
             });
           }}
+          onLoadProgress={({ nativeEvent }) => {
+            if (nativeEvent.progress >= 1) {
+              setIsLoading(false);
+            }
+          }}
           onError={(event) => {
             const { nativeEvent } = event;
             setIsLoading(false);
@@ -230,6 +249,9 @@ export default function HomeScreen() {
           }}
           onNavigationStateChange={(navState) => {
             setCanGoBack(navState.canGoBack);
+            if (!navState.loading) {
+              setIsLoading(false);
+            }
             const sanitizedUrl = sanitizeUrl(navState.url);
             if (lastTrackedUrlRef.current !== sanitizedUrl) {
               lastTrackedUrlRef.current = sanitizedUrl;
@@ -244,13 +266,7 @@ export default function HomeScreen() {
           allowsBackForwardNavigationGestures
           javaScriptEnabled
           domStorageEnabled
-          startInLoadingState
           scalesPageToFit={Platform.OS === 'android'}
-          renderLoading={() => (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#1a3c5e" />
-            </View>
-          )}
         />
         {hasError && (
           <View style={styles.errorContainer} accessibilityLiveRegion="polite">
@@ -268,22 +284,29 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
         )}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Contact EEA Enterprises"
-          style={[styles.contactButton, { bottom: Math.max(insets.bottom + 16, 28) }]}
-          onPress={() => {
-            trackEvent('contact_cta_opened', {
-              currentUrl: lastTrackedUrlRef.current ?? EEA_URL,
-            });
-            navigateToContactPage();
-          }}
-        >
-          <Text style={styles.contactButtonLabel}>Contact Us</Text>
-        </Pressable>
+        <View style={styles.contactOverlay} pointerEvents="box-none">
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Contact EEA Enterprises"
+            style={[styles.contactButton, { bottom: Math.max(insets.bottom + 16, 28) }]}
+            onPress={() => {
+              trackEvent('contact_cta_opened', {
+                currentUrl: lastTrackedUrlRef.current ?? EEA_URL,
+              });
+              navigateToContactPage();
+            }}
+          >
+            <Text style={styles.contactButtonLabel}>Contact Us</Text>
+          </Pressable>
+        </View>
         {isLoading && !hasError && (
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#1a3c5e" />
+          <View
+            style={[styles.loadingIndicator, { top: insets.top + 12 }]}
+            pointerEvents="none"
+            accessibilityRole="progressbar"
+            accessibilityLabel="Loading page"
+          >
+            <ActivityIndicator size="small" color="#1a3c5e" />
           </View>
         )}
       </View>
@@ -299,28 +322,29 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
   },
-  loadingContainer: {
+  loadingIndicator: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    alignSelf: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#ffffff',
+    elevation: 3,
+    shadowColor: '#10263c',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+  contactOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    elevation: 10,
   },
   contactButton: {
     position: 'absolute',
+    zIndex: 2,
     right: 20,
     backgroundColor: '#1a3c5e',
     paddingHorizontal: 20,

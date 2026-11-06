@@ -78,7 +78,8 @@ eas submit --platform android --profile production-android
 
 - iOS build number auto-increments via EAS production profile.
 - Android version code auto-increments via EAS production profile.
-- Update user-visible version in `app.json` (`expo.version`) when shipping a public release.
+- Update the user-visible version in `app.json` (`expo.version`) and `package.json` when shipping a public release.
+- The runtime version follows `expo.version`. SDK 58 uses version 1.1.0, so build and distribute new binaries before publishing SDK 58 updates; existing 1.0.0 binaries cannot receive them.
 
 ## Connection Recovery Checks
 
@@ -86,5 +87,8 @@ Before releasing, verify on iOS and Android:
 
 - Open the app without a connection and confirm the error screen appears.
 - Restore connectivity and tap Retry; the website should load again.
-- Confirm Contact Us remains available on the error screen, including configured phone and email shortcuts.
+- Confirm Contact Us remains available while loading and on the error screen, and opens the website's Contact Us page.
+- Interrupt loading the Contact Us page, restore connectivity, and tap Contact Us again; the page should reload.
 - Navigate to another page, interrupt connectivity, and retry; the app should reload that page.
+- Confirm loading shows a small indicator without fading the page or blocking scrolling and Contact Us.
+- On a slow connection, confirm the indicator clears within 15 seconds while the page continues loading; genuine load failures should still show the retry screen.
