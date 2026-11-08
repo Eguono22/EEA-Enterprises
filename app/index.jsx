@@ -81,6 +81,7 @@ export default function HomeScreen() {
   const [canGoBack, setCanGoBack] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [httpErrorStatus, setHttpErrorStatus] = useState(null);
   const [webViewUrl, setWebViewUrl] = useState(EEA_URL);
 
   // Handle Android hardware back button
@@ -135,6 +136,7 @@ export default function HomeScreen() {
 
   const navigateToContactPage = useCallback(() => {
     setHasError(false);
+    setHttpErrorStatus(null);
     setIsLoading(true);
     if (webViewUrl === CONTACT_PAGE_URL) {
       webViewRef.current?.reload();
@@ -168,8 +170,21 @@ export default function HomeScreen() {
       lastUrl: lastTrackedUrlRef.current ?? EEA_URL,
     });
     setHasError(false);
+    setHttpErrorStatus(null);
     setIsLoading(true);
     webViewRef.current?.reload();
+  };
+
+  const handleGoHome = () => {
+    setHasError(false);
+    setHttpErrorStatus(null);
+    setIsLoading(true);
+    if (webViewUrl === EEA_URL) {
+      // The WebView may have navigated away while its source prop stayed the same.
+      webViewRef.current?.injectJavaScript(`window.location.href = ${JSON.stringify(EEA_URL)}; true;`);
+    } else {
+      setWebViewUrl(EEA_URL);
+    }
   };
 
   const screenOptions = { headerShown: false };
@@ -220,8 +235,9 @@ export default function HomeScreen() {
           }}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
-            if (nativeEvent.statusCode >= 500 && nativeEvent.isTopFrame !== false) {
+            if (nativeEvent.statusCode >= 400 && nativeEvent.isTopFrame !== false) {
               setIsLoading(false);
+              setHttpErrorStatus(nativeEvent.statusCode);
               setHasError(true);
             }
             captureMessage('WebView HTTP error', {
@@ -253,9 +269,15 @@ export default function HomeScreen() {
         />
         {hasError && (
           <View style={styles.errorContainer} accessibilityLiveRegion="polite">
-            <Text style={styles.errorTitle}>Unable to Connect</Text>
+            <Text style={styles.errorTitle}>
+              {httpErrorStatus === 404 ? 'Page Not Found' : 'Unable to Load Page'}
+            </Text>
             <Text style={styles.errorMessage}>
-              Please check your internet connection and try again.
+              {httpErrorStatus === 404
+                ? 'This page is unavailable on the website. Please return home or contact us for help.'
+                : httpErrorStatus
+                  ? `The website returned an error (${httpErrorStatus}). Please try again shortly.`
+                  : 'Please check your internet connection and try again.'}
             </Text>
             <TouchableOpacity
               accessibilityRole="button"
@@ -264,6 +286,14 @@ export default function HomeScreen() {
               onPress={handleReload}
             >
               <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              accessibilityRole="button"
+              accessibilityLabel="Return to the homepage"
+              style={[styles.retryButton, { marginTop: 12 }]}
+              onPress={handleGoHome}
+            >
+              <Text style={styles.retryText}>Return Home</Text>
             </TouchableOpacity>
           </View>
         )}

@@ -56,6 +56,28 @@ The project uses Expo SDK 58. Install a version of Expo Go that supports SDK 58;
 availability in app stores depends on Expo's rollout. After upgrading dependencies,
 restart the development server with `npx expo start --clear`.
 
+### Test on an Android phone or iPhone
+
+1. Install an Expo Go version compatible with SDK 58 from
+   [Expo's device download page](https://expo.dev/go). If a compatible iPhone
+   version is unavailable, use a signed preview build as described below.
+2. Connect your computer and phone to the same Wi-Fi network.
+   On iPhone, run `npx expo login` and sign in to Expo Go with the same Expo account.
+3. Run `npx expo start --go --clear` in this project and keep it running.
+4. Scan the terminal QR code with Expo Go on Android or the Camera app on iPhone.
+5. Check the homepage, Contact Us button, internal links, phone/email shortcuts,
+   Android back button, and iPhone back swipe after navigating to another page.
+6. Turn off Wi-Fi and mobile data, navigate to a new page, then restore the
+   connection and tap Retry. Confirm the error screen clears and content loads.
+
+Expo Go checks the screen and navigation. Native Sentry crash reporting and the
+branded splash screen require an installed app build. For that check, run
+`npx eas-cli build --profile preview --platform android` (install the APK), or
+`npx eas-cli device:create` followed by
+`npx eas-cli build --profile preview --platform ios` (register the iPhone before
+building and install using the EAS link). iPhone builds require Apple signing
+credentials. These commands create cloud builds in your Expo account.
+
 ---
 
 ## Building for Production
@@ -202,6 +224,17 @@ SENTRY_ORG=your-sentry-org
 SENTRY_PROJECT=your-sentry-project
 SENTRY_AUTH_TOKEN=your-sentry-auth-token
 ```
+
+`app.config.js` reads `SENTRY_ORG` and `SENTRY_PROJECT` into the native build
+plugin. Leave them empty while monitoring is unconfigured; the token stays in
+the build environment. The EAS profiles currently set
+`SENTRY_DISABLE_AUTO_UPLOAD=true`; change that to `false` in the desired profile
+after configuring the organization, project, and token to enable source map uploads.
+
+`metro.config.js` handles Sentry's optional lookup of a removed Expo Router 58
+internal module. It returns an empty module only for that missing Sentry lookup,
+so Sentry can use its existing fallback. The workaround stops applying if a
+future Router version restores the module.
 
 Tracked events currently include:
 
