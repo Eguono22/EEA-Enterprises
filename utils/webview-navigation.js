@@ -36,6 +36,27 @@ export function getNavigationAction(request, siteUrl) {
   }
 }
 
+export function getShareableUrl(url, siteUrl) {
+  try {
+    const target = new URL(url, siteUrl);
+    const site = new URL(siteUrl);
+    const hostname = (value) => value.hostname.replace(/^www\./, '').toLowerCase();
+
+    if (
+      !['http:', 'https:'].includes(target.protocol) ||
+      hostname(target) !== hostname(site) ||
+      target.username ||
+      target.password
+    ) {
+      return site.href;
+    }
+
+    return target.href;
+  } catch {
+    return new URL(siteUrl).href;
+  }
+}
+
 export function getLinkFailureMessage(url) {
   if (url.startsWith('mailto:')) {
     const address = url.slice('mailto:'.length).split('?')[0];

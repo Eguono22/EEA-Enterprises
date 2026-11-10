@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { CONTACT_LINK_ORIGINS, getLinkFailureMessage, getNavigationAction } from '../utils/webview-navigation.js';
+import {
+  CONTACT_LINK_ORIGINS,
+  getLinkFailureMessage,
+  getNavigationAction,
+  getShareableUrl,
+} from '../utils/webview-navigation.js';
 
 const siteUrl = 'https://eea-enterprises.com/';
 
@@ -54,4 +59,28 @@ test('a genuine contact-app failure leaves usable contact details', () => {
   assert.ok(!emailMessage.includes('?subject'));
   assert.ok(getLinkFailureMessage('tel:+31621671526').includes('+31621671526'));
   assert.ok(getLinkFailureMessage('whatsapp://send').includes('WhatsApp'));
+});
+
+test('sharing preserves the current internal page and its query or fragment', () => {
+  assert.equal(
+    getShareableUrl('https://www.eea-enterprises.com/shop/?category=gear#products', siteUrl),
+    'https://www.eea-enterprises.com/shop/?category=gear#products'
+  );
+  assert.equal(getShareableUrl('/contact-us/', siteUrl), 'https://eea-enterprises.com/contact-us/');
+});
+
+test('sharing falls back to the home page for external or unsafe URLs', () => {
+  for (const url of [
+    'https://example.com/',
+    'javascript:alert(1)',
+    'https://eea-enterprises.com@example.com/',
+    'https://user:password@eea-enterprises.com/private',
+    'https://[invalid',
+  ]) {
+    assert.equal(getShareableUrl(url, siteUrl), siteUrl);
+  }
+});
+
+test('sharing removes URLs containing user information', () => {
+  assert.equal(getShareableUrl('https://user@eea-enterprises.com/private', siteUrl), siteUrl);
 });

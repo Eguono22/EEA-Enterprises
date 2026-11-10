@@ -7,6 +7,7 @@ import {
   Linking,
   Platform,
   Pressable,
+  Share,
   StatusBar,
   StyleSheet,
   Text,
@@ -20,6 +21,7 @@ import {
   CONTACT_LINK_ORIGINS,
   getLinkFailureMessage,
   getNavigationAction,
+  getShareableUrl,
 } from '../utils/webview-navigation';
 
 const EEA_URL = 'https://eea-enterprises.com/';
@@ -77,6 +79,7 @@ function captureMessage(message, data = {}, level = 'warning') {
 export default function HomeScreen() {
   const webViewRef = useRef(null);
   const lastTrackedUrlRef = useRef(null);
+  const currentUrlRef = useRef(EEA_URL);
   const insets = useSafeAreaInsets();
   const [canGoBack, setCanGoBack] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -187,6 +190,28 @@ export default function HomeScreen() {
     }
   };
 
+  const handleSharePage = async () => {
+    const url = getShareableUrl(currentUrlRef.current, EEA_URL);
+    trackEvent('page_share_opened', { url });
+
+    try {
+      const result = await Share.share({
+        ...(Platform.OS === 'ios' ? { url } : { message: url }),
+        title: 'EEA Enterprises',
+      });
+
+      if (result.action === Share.sharedAction) {
+        trackEvent('page_shared', { url });
+      }
+    } catch (error) {
+      captureMessage('Failed to share page', {
+        url,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      Alert.alert('Unable to Share Page', 'Please try again.');
+    }
+  };
+
   const screenOptions = { headerShown: false };
 
   return (
@@ -247,6 +272,7 @@ export default function HomeScreen() {
           }}
           onNavigationStateChange={(navState) => {
             setCanGoBack(navState.canGoBack);
+            currentUrlRef.current = navState.url;
             if (!navState.loading) {
               setIsLoading(false);
             }
@@ -298,19 +324,29 @@ export default function HomeScreen() {
           </View>
         )}
         <View style={styles.contactOverlay} pointerEvents="box-none">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Contact EEA Enterprises"
-            style={[styles.contactButton, { bottom: Math.max(insets.bottom + 16, 28) }]}
-            onPress={() => {
-              trackEvent('contact_cta_opened', {
-                currentUrl: lastTrackedUrlRef.current ?? EEA_URL,
-              });
-              navigateToContactPage();
-            }}
-          >
-            <Text style={styles.contactButtonLabel}>Contact Us</Text>
-          </Pressable>
+          <View style={[styles.actionButtons, { bottom: Math.max(insets.bottom + 16, 28) }]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Share this page"
+              onPress={handleSharePage}
+              style={styles.shareButton}
+            >
+              <Text style={styles.shareButtonLabel}>Share</Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Contact EEA Enterprises"
+              style={styles.contactButton}
+              onPress={() => {
+                trackEvent('contact_cta_opened', {
+                  currentUrl: lastTrackedUrlRef.current ?? EEA_URL,
+                });
+                navigateToContactPage();
+              }}
+            >
+              <Text style={styles.contactButtonLabel}>Contact Us</Text>
+            </Pressable>
+          </View>
         </View>
         {isLoading && !hasError && (
           <View
@@ -355,10 +391,27 @@ const styles = StyleSheet.create({
     zIndex: 10,
     elevation: 10,
   },
-  contactButton: {
+  actionButtons: {
     position: 'absolute',
-    zIndex: 2,
     right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  shareButton: {
+    backgroundColor: '#ffffff',
+    borderColor: '#1a3c5e',
+    borderWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderRadius: 999,
+  },
+  shareButtonLabel: {
+    color: '#1a3c5e',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  contactButton: {
     backgroundColor: '#1a3c5e',
     paddingHorizontal: 20,
     paddingVertical: 14,

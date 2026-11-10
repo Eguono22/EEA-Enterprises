@@ -8,6 +8,7 @@ A cross-platform mobile application for [EEA Enterprises](https://eea-enterprise
 
 - 📱 Native iOS & Android app powered by Expo / React Native
 - 🌐 Full website experience via embedded WebView
+- 🔗 Native sharing for the current EEA website page
 - ⬅️ Android hardware back-button navigation support
 - ⏳ Nonblocking loading indicator that clears on completion or after 15 seconds
 - ⚠️ Offline / error screen with retry button
