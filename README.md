@@ -183,8 +183,8 @@ Key settings in `app.json`:
 | Field | Value |
 |-------|-------|
 | App Name | EEA Enterprises |
-| iOS Bundle ID | `com.eeaenterprises.app` |
-| Android Package | `com.eeaenterprises.app` |
+| iOS Bundle ID | `com.eeaenterprises.shop` |
+| Android Package | `com.eeaenterprises.shop` |
 | Target URL | `https://eea-enterprises.com/` |
 | Orientation | Portrait |
 
@@ -192,7 +192,9 @@ Key settings in `app.json`:
 
 ## Customizing the App Icon & Splash Screen
 
-Replace the placeholder images in `assets/images/` with your branded artwork:
+The app and Android adaptive icons in `assets/images/` use the approved EEA
+artwork. The splash image remains a solid-color placeholder and can be replaced
+with branded artwork:
 
 - `icon.png` — 1024 × 1024 px, no transparency, no rounded corners (Apple adds them automatically)
 - `adaptive-icon.png` — 1024 × 1024 px foreground layer for Android adaptive icons

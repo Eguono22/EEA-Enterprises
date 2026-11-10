@@ -11,7 +11,7 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.eeaenterprises.app",
+      "bundleIdentifier": "com.eeaenterprises.shop",
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#1a3c5e"
       },
-      "package": "com.eeaenterprises.app",
+      "package": "com.eeaenterprises.shop",
       "versionCode": 6
     },
     "plugins": [

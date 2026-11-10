@@ -1,0 +1,39 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build iOS production app",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"eas-cli@latest",
+				"build",
+				"--platform",
+				"ios",
+				"--profile",
+				"production",
+				"--no-wait"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Upload iOS build to App Store Connect",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--yes",
+				"eas-cli@latest",
+				"submit",
+				"--platform",
+				"ios",
+				"--id",
+				"31eddfcc-881d-45cd-8c23-e3b573b85db5",
+				"--no-wait"
+			],
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}

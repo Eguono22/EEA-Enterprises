@@ -1,6 +1,7 @@
 # EEA Enterprises Mobile Release Guide
 
-This project is ready to ship with Expo + EAS.
+Expo + EAS can build this project, but store submission requires completed
+listing and privacy information, device testing, and store review.
 
 ## One-time Setup
 
@@ -22,8 +23,8 @@ eas build:configure
 
 These are already configured in `app.json`:
 
-- iOS bundle ID: `com.eeaenterprises.app`
-- Android package: `com.eeaenterprises.app`
+- iOS bundle ID: `com.eeaenterprises.shop`
+- Android package: `com.eeaenterprises.shop`
 
 If these IDs are already used in your developer accounts, keep them. Otherwise change them before first store release.
 
