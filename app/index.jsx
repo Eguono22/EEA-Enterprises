@@ -142,7 +142,14 @@ export default function HomeScreen() {
     setHttpErrorStatus(null);
     setIsLoading(true);
     if (webViewUrl === CONTACT_PAGE_URL) {
-      webViewRef.current?.reload();
+      // In-page navigation can change the displayed page without changing source.
+      if (currentUrlRef.current === CONTACT_PAGE_URL) {
+        webViewRef.current?.reload();
+      } else {
+        webViewRef.current?.injectJavaScript(
+          `window.location.href = ${JSON.stringify(CONTACT_PAGE_URL)}; true;`
+        );
+      }
     } else {
       setWebViewUrl(CONTACT_PAGE_URL);
     }
